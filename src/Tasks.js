@@ -135,7 +135,7 @@ class Tasks extends Component {
                 else {
                     this.setState({success: false}, () => {
                         setTimeout(() => {
-                            this.setState({success: null});
+                            this.setState({type: 'failure'});
                         }, 1500);
                     });
                 }
@@ -464,23 +464,25 @@ class Tasks extends Component {
                         </Button>
                     </div>
                 </div>
-                <div style={{
-                    whiteSpace: 'pre-wrap',
-                    marginBottom: '1em'
-                }}>
-                    <MathJax.Provider>
-                        {this.state.text
-                            .split('$')
-                            .map((value, index) => {
-                                if(index % 2 === 1)
-                                    return (
-                                        <MathJax.Node inline formula={value} />
-                                    );
-                                else
-                                    return value;
-                            }) }
-                    </MathJax.Provider>
-                </div>
+                {this.state.type !== 'failure' &&
+                    <div style={{
+                        whiteSpace: 'pre-wrap',
+                        marginBottom: '1em'
+                    }}>
+                        <MathJax.Provider>
+                            {this.state.text
+                                .split('$')
+                                .map((value, index) => {
+                                    if(index % 2 === 1)
+                                        return (
+                                            <MathJax.Node inline formula={value} />
+                                        );
+                                    else
+                                        return value;
+                                }) }
+                        </MathJax.Provider>
+                    </div>
+                }
                 {this.state.id === 'success' &&
                     <div>
                         <center>
@@ -491,6 +493,23 @@ class Tasks extends Component {
                                     new Date(localStorage.getItem('start_time'))
                                 )}.
                             </span>
+                        </center>
+                    </div>
+                }
+                {this.state.type === 'failure' &&
+                    <div>
+                        <center>
+                            <h1>Неправильно</h1>
+                            <video autoplay="autoplay" muted>
+                                <source src="failure.mp4" type="video/mp4" />
+                            </video>
+                            <Button
+                                variant="primary"
+                                style={{width: '20em'}}
+                                onClick={() => this.get()}
+                            >
+                                Попробовать еще раз
+                            </Button>
                         </center>
                     </div>
                 }

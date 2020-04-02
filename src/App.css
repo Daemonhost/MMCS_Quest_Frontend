@@ -67,3 +67,16 @@ div.main-component {
 .dropdown-item {
     padding: .25rem .25rem;
 }
+
+div.bottom-panel {
+    box-shadow: 0px 0px 10px grey;
+    padding: 0.5rem 0.7rem;
+    background-color: WhiteSmoke;
+    overflow: hidden;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    justify-content: left;
+    font-size: 14px;
+    color: Grey;
+}

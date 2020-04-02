@@ -59,10 +59,8 @@ class Tasks extends Component {
             id: this.state.id
         };
         if(this.state.id === 'success') {
-            const startTime = new Date(localStorage.getItem('start_time'));
-            const endTime = new Date(localStorage.getItem('end_time'));
             this.setState({
-                text: `Поздравляем! Вы выполнили все задачи за ${timeSince(endTime, startTime)}.`,
+                text: '',
                 type: 'success'
             });
         }
@@ -483,6 +481,19 @@ class Tasks extends Component {
                             }) }
                     </MathJax.Provider>
                 </div>
+                {this.state.id === 'success' &&
+                    <div>
+                        <center>
+                            <h1>Поздравляем!</h1>
+                            <span>
+                                Вы выполнили все задачи за {timeSince(
+                                    new Date(localStorage.getItem('end_time')),
+                                    new Date(localStorage.getItem('start_time'))
+                                )}.
+                            </span>
+                        </center>
+                    </div>
+                }
                 {this.renderResponseField()}
             </div>
         );

@@ -16,6 +16,30 @@ const emptyState = Object.freeze({
     success: null
 });
 
+function timeSince(date2, date1) {
+    let seconds = Math.floor((date2 - date1) / 1000);
+    let timeString = '';
+
+    let interval = Math.floor(seconds / 86400);
+    if(interval >= 1)
+        timeString += `${interval}д `;
+    seconds %= 86400;
+
+    interval = Math.floor(seconds / 3600);
+    if(interval >= 1)
+        timeString += `${interval}ч `;
+    seconds %= 3600;
+
+    interval = Math.floor(seconds / 60);
+    if(interval >= 1)
+        timeString += `${interval}м `;
+    seconds %= 60;
+    if(seconds >= 1)
+        timeString += `${seconds}с`
+
+    return timeString.trim();
+}
+
 class Tasks extends Component {
     constructor(props) {
         super(props);
@@ -34,18 +58,31 @@ class Tasks extends Component {
         let jsonRequest = {
             id: this.state.id
         };
-        axios
-            .post('/api/task/get', jsonRequest, null)
-            .then(response => {
-                localStorage.setItem('last_id', response.data.id);
-                this.setState({
-                    ...emptyState,
-                    id: response.data.id,
-                    text: response.data.text,
-                    type: response.data.type
-                });
-            })
-            .catch(error => console.log(error));
+        if(this.state.id === 'success') {
+            const startTime = new Date(localStorage.getItem('start_time'));
+            const endTime = new Date(localStorage.getItem('end_time'));
+            this.setState({
+                text: `Поздравляем! Вы выполнили все задачи за ${timeSince(endTime, startTime)}.`,
+                type: 'success'
+            });
+        }
+        else {
+            axios
+                .post('/api/task/get', jsonRequest, null)
+                .then(response => {
+                    localStorage.setItem('last_id', response.data.id);
+                    if(this.state.id === '') {
+                        localStorage.setItem('start_time', new Date());
+                    }
+                    this.setState({
+                        ...emptyState,
+                        id: response.data.id,
+                        text: response.data.text,
+                        type: response.data.type
+                    });
+                })
+                .catch(error => console.log(error));
+        }
     }
 
     solve() {
@@ -79,12 +116,21 @@ class Tasks extends Component {
                     this.setState({success: true}, () => {
                         setTimeout(() => {
                             localStorage.setItem('last_id', response.data.next_task.id);
-                            this.setState({
-                                ...emptyState,
-                                id: response.data.next_task.id,
-                                text: response.data.next_task.text,
-                                type: response.data.next_task.type
-                            });
+                            if(response.data.next_task.id === 'success') {
+                                localStorage.setItem('end_time', new Date());
+                                this.setState({
+                                    ...emptyState,
+                                    id: response.data.next_task.id
+                                }, this.get);
+                            }
+                            else {
+                                this.setState({
+                                    ...emptyState,
+                                    id: response.data.next_task.id,
+                                    text: response.data.next_task.text,
+                                    type: response.data.next_task.type
+                                });
+                            }
                         }, 1500);
                     });
                 }

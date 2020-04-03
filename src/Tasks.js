@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, DropdownButton, Dropdown } from 'react-bootstrap';
+import { Button, DropdownButton, Dropdown, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import MathJax from 'react-mathjax';
 import axios from './Axios.js';
@@ -13,8 +13,27 @@ const emptyState = Object.freeze({
     equationsY: '',
     inequalities: [['', '<', '<', '']],
     inequalitiesLeftActive: [true],
+    choiceOptions: [],
+    choiceSelected: 0,
     success: null
 });
+
+function parseMathjax(text) {
+    return (
+        <MathJax.Provider>
+            {text
+                .split('$')
+                .map((value, index) => {
+                    if(index % 2 === 1)
+                        return (
+                            <MathJax.Node inline formula={value} />
+                        );
+                    else
+                        return value;
+                })}
+        </MathJax.Provider>
+    );
+}
 
 function timeSince(date2, date1) {
     let seconds = Math.floor((date2 - date1) / 1000);
@@ -72,12 +91,15 @@ class Tasks extends Component {
                     if(this.state.id === '') {
                         localStorage.setItem('start_time', new Date());
                     }
-                    this.setState({
+                    let newState = {
                         ...emptyState,
                         id: response.data.id,
                         text: response.data.text,
                         type: response.data.type
-                    });
+                    };
+                    if(response.data.type === 'choice')
+                        newState.choiceOptions = response.data.options;
+                    this.setState(newState);
                 })
                 .catch(error => console.log(error));
         }
@@ -104,6 +126,9 @@ class Tasks extends Component {
                 return object;
             });
         }
+        else if(this.state.type === 'choice') {
+            jsonRequest.solution = this.state.choiceSelected;
+        }
         else {
             return;
         }
@@ -122,12 +147,15 @@ class Tasks extends Component {
                                 }, this.get);
                             }
                             else {
-                                this.setState({
+                                let newState = {
                                     ...emptyState,
                                     id: response.data.next_task.id,
                                     text: response.data.next_task.text,
                                     type: response.data.next_task.type
-                                });
+                                };
+                                if(response.data.next_task.type === 'choice')
+                                    newState.choiceOptions = response.data.next_task.options;
+                                this.setState(newState);
                             }
                         }, 1500);
                     });
@@ -421,6 +449,59 @@ class Tasks extends Component {
                 </div>
             );
         }
+        else if(this.state.type === 'choice') {
+            return (
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'row'
+                }}>
+                    <div style={{
+                        flex: 1,
+                        flexDirection: 'column',
+                        justifyContent: 'left'
+                    }}>
+                        <Form>
+                            <Form.Group controlId="choiceRadio">
+                                {this.state.choiceOptions.map((value, index) => (
+                                    <Form.Check
+                                        checked={this.state.choiceSelected === index}
+                                        onClick={() => this.setState({choiceSelected: index})}
+                                        type="radio"
+                                        label={parseMathjax(value)}
+                                    />
+                                ))}
+                            </Form.Group>
+                        </Form>
+                    </div>
+                    <div style={{
+                        justifyContent: 'right'
+                    }}>
+                        {this.state.success === null &&
+                            <Button
+                                variant="primary"
+                                style={{width: '10em'}}
+                                onClick={() => this.solve()}
+                            >
+                                Отправить
+                            </Button>}
+                        {this.state.success === true &&
+                            <Button
+                                variant="success"
+                                style={{width: '10em'}}
+                            >
+                                Правильно
+                            </Button>}
+                        {this.state.success === false &&
+                            <Button
+                                variant="danger"
+                                style={{width: '10em'}}
+                            >
+                                Неправильно
+                            </Button>}
+                    </div>
+                </div>
+            );
+        }
         else {
             return null;
         }
@@ -469,18 +550,7 @@ class Tasks extends Component {
                         whiteSpace: 'pre-wrap',
                         marginBottom: '1em'
                     }}>
-                        <MathJax.Provider>
-                            {this.state.text
-                                .split('$')
-                                .map((value, index) => {
-                                    if(index % 2 === 1)
-                                        return (
-                                            <MathJax.Node inline formula={value} />
-                                        );
-                                    else
-                                        return value;
-                                }) }
-                        </MathJax.Provider>
+                        {parseMathjax(this.state.text)}
                     </div>
                 }
                 {this.state.id === 'success' &&

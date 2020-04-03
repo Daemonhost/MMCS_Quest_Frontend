@@ -172,7 +172,7 @@ class Tasks extends Component {
     }
 
     numericInputHandler(e) {
-        const re = /[0-9.]/g;
+        const re = /[0-9.-]/g;
         if(!re.test(e.key))
             e.preventDefault();
     }

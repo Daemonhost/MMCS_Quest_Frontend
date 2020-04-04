@@ -19,20 +19,16 @@ const emptyState = Object.freeze({
 });
 
 function parseMathjax(text) {
-    return (
-        <MathJax.Provider>
-            {text
-                .split('$')
-                .map((value, index) => {
-                    if(index % 2 === 1)
-                        return (
-                            <MathJax.Node inline formula={value} />
-                        );
-                    else
-                        return value;
-                })}
-        </MathJax.Provider>
-    );
+    return text
+        .split('$')
+        .map((value, index) => {
+            if(index % 2 === 1)
+                return (
+                    <MathJax.Node inline formula={value} />
+                );
+            else
+                return value;
+        });
 }
 
 function timeSince(date2, date1) {
@@ -467,6 +463,7 @@ class Tasks extends Component {
                                         checked={this.state.choiceSelected === index}
                                         onClick={() => this.setState({choiceSelected: index})}
                                         type="radio"
+                                        id={`choiceRadioCheck${index}`}
                                         label={parseMathjax(value)}
                                     />
                                 ))}
@@ -509,82 +506,84 @@ class Tasks extends Component {
 
     render() {
         return (
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
+            <MathJax.Provider>
                 <div style={{
                     display: 'flex',
-                    flexDirection: 'row',
-                    marginBottom: '1em'
+                    flexDirection: 'column'
                 }}>
                     <div style={{
-                        flex: 1,
-                        justifyContent: 'left'
+                        display: 'flex',
+                        flexDirection: 'row',
+                        marginBottom: '1em'
                     }}>
-                        <Link to="/">
+                        <div style={{
+                            flex: 1,
+                            justifyContent: 'left'
+                        }}>
+                            <Link to="/">
+                                <Button
+                                    variant="primary"
+                                    style={{width: '10em'}}
+                                >
+                                    На главную
+                                </Button>
+                            </Link>
+                        </div>
+                        <div style={{
+                            justifyContent: 'right'
+                        }}>
                             <Button
                                 variant="primary"
                                 style={{width: '10em'}}
+                                onClick={() => {
+                                    this.setState({id: ''}, this.get);
+                                }}
                             >
-                                На главную
+                                Начать заново
                             </Button>
-                        </Link>
+                        </div>
                     </div>
-                    <div style={{
-                        justifyContent: 'right'
-                    }}>
-                        <Button
-                            variant="primary"
-                            style={{width: '10em'}}
-                            onClick={() => {
-                                this.setState({id: ''}, this.get);
-                            }}
-                        >
-                            Начать заново
-                        </Button>
-                    </div>
+                    {this.state.type !== 'failure' &&
+                        <div style={{
+                            whiteSpace: 'pre-wrap',
+                            marginBottom: '1em'
+                        }}>
+                            {parseMathjax(this.state.text)}
+                        </div>
+                    }
+                    {this.state.id === 'success' &&
+                        <div>
+                            <center>
+                                <h1>Поздравляем!</h1>
+                                <span>
+                                    Вы выполнили все задачи за {timeSince(
+                                        new Date(localStorage.getItem('end_time')),
+                                        new Date(localStorage.getItem('start_time'))
+                                    )}.
+                                </span>
+                            </center>
+                        </div>
+                    }
+                    {this.state.type === 'failure' &&
+                        <div>
+                            <center>
+                                <h1>Неправильно</h1>
+                                <video autoplay="autoplay" muted>
+                                    <source src="/static/failure.mp4" type="video/mp4" />
+                                </video>
+                                <Button
+                                    variant="primary"
+                                    style={{width: '20em'}}
+                                    onClick={() => this.get()}
+                                >
+                                    Попробовать еще раз
+                                </Button>
+                            </center>
+                        </div>
+                    }
+                    {this.renderResponseField()}
                 </div>
-                {this.state.type !== 'failure' &&
-                    <div style={{
-                        whiteSpace: 'pre-wrap',
-                        marginBottom: '1em'
-                    }}>
-                        {parseMathjax(this.state.text)}
-                    </div>
-                }
-                {this.state.id === 'success' &&
-                    <div>
-                        <center>
-                            <h1>Поздравляем!</h1>
-                            <span>
-                                Вы выполнили все задачи за {timeSince(
-                                    new Date(localStorage.getItem('end_time')),
-                                    new Date(localStorage.getItem('start_time'))
-                                )}.
-                            </span>
-                        </center>
-                    </div>
-                }
-                {this.state.type === 'failure' &&
-                    <div>
-                        <center>
-                            <h1>Неправильно</h1>
-                            <video autoplay="autoplay" muted>
-                                <source src="failure.mp4" type="video/mp4" />
-                            </video>
-                            <Button
-                                variant="primary"
-                                style={{width: '20em'}}
-                                onClick={() => this.get()}
-                            >
-                                Попробовать еще раз
-                            </Button>
-                        </center>
-                    </div>
-                }
-                {this.renderResponseField()}
-            </div>
+            </MathJax.Provider>
         );
     }
 }

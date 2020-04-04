@@ -16,7 +16,10 @@ class App extends Component {
                 fontFamily: 'Roboto',
                 fontWeight: 'normal',
                 fontStyle: 'normal',
-                fontSize: '18px'
+                fontSize: '18px',
+                backgroundImage: 'url(/static/mmcs.jpg)',
+                backgrountPosition: 'center center',
+                backgroundSize: '2000px 1500px'
             }}>
                 <div style={{
                     display: 'flex',
